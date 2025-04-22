@@ -1,3 +1,13 @@
+### My Changes 
+- Better bbox calculation from keypoints for ground truth. 
+def _compute_bboxes(
+        images: list[dict],
+        annotations: list[dict],
+        method: str = "gt",
+    ):
+DeepLabCut/deeplabcut/pose_estimation_pytorch/data/base.py
+
+
 <div align="center">
   
 
