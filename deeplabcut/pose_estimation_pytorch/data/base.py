@@ -325,7 +325,6 @@ class Loader(ABC):
                 - 'detection bbox': Bounding boxes from detection.
                 - 'keypoints': Bounding boxes from keypoints.
                 - 'segmentation mask': Bounding boxes from segmentation masks.
-            bbox_margin: Margin to add around keypoints when generating bounding boxes.
 
         Returns:
             list: Updated annotations based on the given method.
@@ -352,18 +351,38 @@ class Loader(ABC):
             raise NotImplementedError
 
         elif method == "keypoints":
+            width_margin_percentage = 0.05  # 5% of bbox width as margin
+            height_margin_percentage = 0.05  # 5% of bbox height as margin
+            
             min_area = 1  # TODO: should not be hardcoded
             img_id_to_annotations = map_id_to_annotations(annotations)
             for img in images:
                 anns = [annotations[idx] for idx in img_id_to_annotations[img["id"]]]
                 for a in anns:
-                    a["bbox"] = bbox_from_keypoints(
+                    # Get the raw bbox from keypoints function
+                    raw_bbox = bbox_from_keypoints(
                         keypoints=a["keypoints"],
                         image_h=img["height"],
                         image_w=img["width"],
-                        margin=bbox_margin,
+                        margin=0,  # No margin initially
                     )
-                    a["area"] = max(min_area, (a["bbox"][2] * a["bbox"][3]).item())
+                    
+                    # Extract dimensions
+                    x, y, width, height = raw_bbox
+                    
+                    # Calculate margins based on bbox dimensions with different percentages
+                    width_margin = width * width_margin_percentage
+                    height_margin = height * height_margin_percentage
+                    
+                    # Apply margins to create new bbox
+                    new_x = max(0, x - width_margin)
+                    new_y = max(0, y - height_margin)
+                    new_width = min(width + 2 * width_margin, img["width"] - new_x)
+                    new_height = min(height + 2 * height_margin, img["height"] - new_y)
+                    
+                    # Set the new bbox with percentage-based margins
+                    a["bbox"] = [new_x, new_y, new_width, new_height]
+                    a["area"] = max(min_area, (new_width * new_height))
             return annotations
 
         elif method == "segmentation mask":
