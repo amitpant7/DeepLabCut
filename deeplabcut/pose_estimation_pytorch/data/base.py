@@ -312,7 +312,7 @@ class Loader(ABC):
         images: list[dict],
         annotations: list[dict],
         method: str = "gt",
-        bbox_margin: int = 20,
+        bbox_margin_perc: float = 0.05,
     ):
         """TODO: Nastya method of bbox computation (detection bbox, seg. mask, ...)
         Retrieves all bounding boxes based on the given method.
@@ -351,8 +351,8 @@ class Loader(ABC):
             raise NotImplementedError
 
         elif method == "keypoints":
-            width_margin_percentage = 0.05  # 5% of bbox width as margin
-            height_margin_percentage = 0.05  # 5% of bbox height as margin
+            width_margin_percentage = bbox_margin_perc
+            height_margin_percentage = bbox_margin_perc
             
             min_area = 1  # TODO: should not be hardcoded
             img_id_to_annotations = map_id_to_annotations(annotations)
